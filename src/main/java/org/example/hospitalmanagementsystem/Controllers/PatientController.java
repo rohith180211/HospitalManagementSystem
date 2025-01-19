@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/patients")
@@ -27,7 +28,7 @@ public class PatientController {
     }
 
     @GetMapping("/{id}")
-    public Patient getPatientById(@PathVariable Long id){
+    public Optional<Patient> getPatientById(@PathVariable Long id){
         System.out.println("Get Patient");
         return PatientService.getPatientById(id);
     }
@@ -36,7 +37,7 @@ public class PatientController {
         PatientService.deletePatientById(id);
     }
     @PutMapping("/{id}")
-    public void updatePatientById(@PathVariable Long id){
-        PatientService.updatePatient(id);
+    public void updatePatientById(@PathVariable Long id,@RequestBody Patient patient){
+        PatientService.updatePatient(id, patient);
     }
 }

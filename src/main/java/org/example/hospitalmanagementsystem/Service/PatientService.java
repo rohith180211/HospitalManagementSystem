@@ -1,14 +1,22 @@
 package org.example.hospitalmanagementsystem.Service;
 
+import org.example.hospitalmanagementsystem.Repository.PatientRepo;
 import org.example.hospitalmanagementsystem.models.Patient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PatientService {
 
+    private static final Logger logger= LoggerFactory.getLogger(PatientService.class);
+    @Autowired
+    private static PatientRepo patientRepo;
     // Mock database for storing patients
     private static final List<Patient> patients = new ArrayList<>();
 
@@ -16,21 +24,18 @@ public class PatientService {
     public static List<Patient> getAllPatients() {
         try {
             System.out.println("Inside getAllPatients method");
-            return patients; // Return the list of patients
+            return patientRepo.findAll(); // Return the list of patients
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             return null;
         }
     }
 
     // Get a patient by ID
-    public static Patient getPatientById(Long id) {
+    public static Optional<Patient> getPatientById(Long id) {
         try {
             System.out.println("Inside getPatientById method");
-            return patients.stream()
-                    .filter(patient -> patient.getId().equals(id))
-                    .findFirst()
-                    .orElse(null); // Return the patient if found, otherwise null
+            return patientRepo.findById(id);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -41,7 +46,7 @@ public class PatientService {
     public static Patient addPatient(Patient patient) {
         try {
             System.out.println("Inside addPatient method");
-            patients.add(patient);
+            patientRepo.save(patient);
             return patient;
         } catch (Exception e) {
             e.printStackTrace();
@@ -50,10 +55,21 @@ public class PatientService {
     }
 
     // Update an existing patient by ID
-    public static Patient updatePatient(Long id) {
+    public static Patient updatePatient(Long id, Patient patient) {
         try {
-            System.out.println("Inside updatePatient method");
-            return null; // Return null if patient not found
+            Optional<Patient> currentPatient = getPatientById(id);
+            if(currentPatient.isPresent()) {
+                Patient updatedPatient = currentPatient.get();
+                updatedPatient.setId(id);
+                updatedPatient.setName(patient.getName());
+                updatedPatient.setGender(patient.getGender());
+                return patientRepo.save(updatedPatient);
+            }
+            else {
+                logger.error("Patient not found");
+                return null; // Return null if patient not found
+
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -63,11 +79,13 @@ public class PatientService {
     // Delete a patient by ID
     public static boolean deletePatientById(Long id) {
         try {
-            System.out.println("Inside deletePatientById method");
-            return patients.removeIf(patient -> patient.getId().equals(id)); // Remove the patient if found
+            patientRepo.deleteById(id);
+            return !patientRepo.existsById(id);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+
+
 }
